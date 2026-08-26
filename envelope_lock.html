@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>untold message</title>
+  <style>
+    @font-face {
+      font-family: 'MyCustomFont';
+      src: url('my-custom-font.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --bg-pink: #ffe6ee;
+      --card-bg: #fff0f5;
+      --accent-pink: #ff4d6d;
+      --accent-soft: #ff85a1;
+      --text-color: #5c2233;
+      --error-red: #ff2a4b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #fff0f5 0%, #ffd1dc 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      color: var(--text-color);
+    }
+
+    .bg-hearts {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .heart-particle {
+      position: absolute;
+      color: var(--accent-soft);
+      opacity: 0.4;
+      animation: floatUp 8s infinite linear;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0.8); opacity: 0; }
+      50% { opacity: 0.5; }
+      100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+    }
+
+    .scene {
+      position: relative;
+      width: 300px;
+      height: 220px;
+      margin-bottom: 20px;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .envelope-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .envelope-img {
+      position: absolute;
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      object-fit: contain;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      filter: drop-shadow(0 10px 15px rgba(255, 77, 109, 0.2));
+    }
+
+    .envelope-closed {
+      opacity: 1;
+      transform: scale(1);
+      z-index: 2;
+    }
+
+    .envelope-open {
+      opacity: 0;
+      transform: scale(0.95);
+      z-index: 1;
+    }
+
+    .click-me-btn {
+      position: absolute;
+      top: 15px;
+      z-index: 5;
+      background: var(--accent-pink);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 77, 109, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.8);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .lock-img {
+      position: absolute;
+      width: 80px;
+      height: auto;
+      z-index: 3;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+    }
+
+    .unlocked .envelope-closed {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    .unlocked .envelope-open {
+      opacity: 1;
+      transform: scale(1.05);
+      z-index: 4;
+      cursor: pointer;
+    }
+
+    .unlocked .lock-img {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.2) rotate(45deg);
+    }
+
+    .unlocked .click-me-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .paper-card {
+      position: relative;
+      width: 90%;
+      max-width: 380px;
+      height: 520px;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      border-radius: 10px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      padding: 70px 35px 35px 35px;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.7);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.active .paper-card {
+      transform: scale(1);
+    }
+
+    .close-modal-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      color: var(--accent-pink);
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .letter-content {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      resize: none;
+      outline: none;
+      font-family: 'MyCustomFont', 'Segoe Print', cursive, sans-serif;
+      font-size: 0.95rem;
+      color: #3d2a35;
+      line-height: 20px;
+      padding-top: 5px;
+    }
+
+    .pin-container {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      z-index: 10;
+    }
+
+    .pin-slot {
+      width: 32px;
+      height: 42px;
+      border: 2px solid var(--accent-soft);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #ffffff;
+      color: var(--accent-pink);
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .pin-slot.active {
+      border-color: var(--accent-pink);
+      box-shadow: 0 0 8px rgba(255, 77, 109, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .pin-slot.filled {
+      background: var(--card-bg);
+      border-color: var(--accent-pink);
+    }
+
+    .pin-container.error .pin-slot {
+      border-color: var(--error-red);
+      background: #ffe0e0;
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 220px;
+      z-index: 10;
+    }
+
+    .key {
+      padding: 12px;
+      background: #ffffff;
+      border: 2px solid #ffd1dc;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-color);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+
+    .key:active, .key.pressed {
+      background: var(--accent-pink);
+      color: white;
+      border-color: var(--accent-pink);
+      transform: translateY(2px);
+    }
+
+    .cursor-hand-gif {
+      position: fixed;
+      width: 50px;
+      height: auto;
+      pointer-events: none;
+      z-index: 1000;
+      transition: left 0.25s ease-out, top 0.25s ease-out, transform 0.15s ease, opacity 0.25s ease;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.15));
+    }
+
+    .cursor-hand-gif.clicking {
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+
+    .controls { display: flex; gap: 10px; margin-top: 15px; z-index: 10; }
+    
+    .btn {
+      padding: 8px 16px;
+      background: #ffffff;
+      color: var(--text-color);
+      border: 2px solid #ffd1dc;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent-pink);
+      color: white;
+      border-color: var(--accent-pink);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-hearts" id="bgHearts"></div>
+
+  <div class="scene" id="scene">
+    <div class="envelope-container">
+      <img src="envelope-closed.png" alt="Closed Envelope" class="envelope-img envelope-closed">
+      <img src="envelope-open.png" alt="Open Envelope" class="envelope-img envelope-open" onclick="openLetterModal()">
+      <img src="lock.png" alt="Heart Lock" class="lock-img">
+      <div class="click-me-btn" onclick="openLetterModal()">READ</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="paperModal">
+    <div class="paper-card">
+      <button class="close-modal-btn" onclick="closeLetterModal()">&times;</button>
+      <textarea class="letter-content" placeholder="I still love my babyy">how can i move on</textarea>
+    </div>
+  </div>
+
+  <div class="pin-container" id="pinContainer">
+    <div class="pin-slot active"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+    <div class="pin-slot"></div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <div class="key" data-num="1">1</div>
+    <div class="key" data-num="2">2</div>
+    <div class="key" data-num="3">3</div>
+    <div class="key" data-num="4">4</div>
+    <div class="key" data-num="5">5</div>
+    <div class="key" data-num="6">6</div>
+    <div class="key" data-num="7">7</div>
+    <div class="key" data-num="8">8</div>
+    <div class="key" data-num="9">9</div>
+    <div class="key" style="grid-column: span 3" data-num="0">0</div>
+  </div>
+
+  <img src="hand-click.gif" id="handGif" class="cursor-hand-gif" alt="Hand Click Animation">
+
+  <div class="controls">
+    <button class="btn" onclick="clearPin()">Clear</button>
+    <button class="btn" onclick="resetLock()">Reset Lock</button>
+  </div>
+
+  <script>
+    function generatePaperBackground() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 380;
+      canvas.height = 520;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#fdf8f9';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, '#fff0f5');
+      grad.addColorStop(1, '#fce4ec');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const heartX = 320;
+      const heartY = 45;
+      const size = 22;
+
+      ctx.save();
+      ctx.fillStyle = '#d8b4e2';
+      ctx.strokeStyle = '#b388eb';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(heartX, heartY);
+      ctx.bezierCurveTo(heartX - size / 2, heartY - size / 2, heartX - size, heartY + size / 3, heartX, heartY + size);
+      ctx.bezierCurveTo(heartX + size, heartY + size / 3, heartX + size / 2, heartY - size / 2, heartX, heartY);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.strokeStyle = '#e8c5d8';
+      ctx.lineWidth = 1;
+      const startY = 88;
+      const lineHeight = 20;
+      const totalLines = 20;
+
+      for (let i = 0; i < totalLines; i++) {
+        const y = startY + (i * lineHeight);
+        ctx.beginPath();
+        ctx.moveTo(30, y);
+        ctx.lineTo(canvas.width - 30, y);
+        ctx.stroke();
+      }
+
+      const paperCard = document.querySelector('.paper-card');
+      paperCard.style.backgroundImage = `url(${canvas.toDataURL('image/png')})`;
+    }
+
+    window.addEventListener('DOMContentLoaded', generatePaperBackground);
+
+    const pinContainer = document.getElementById('pinContainer');
+    const slots = pinContainer.querySelectorAll('.pin-slot');
+    const keypad = document.getElementById('keypad');
+    const handGif = document.getElementById('handGif');
+    const scene = document.getElementById('scene');
+    const paperModal = document.getElementById('paperModal');
+    
+    const CORRECT_PIN = "09182007";
+    let currentPin = "";
+    let isAnimating = false;
+
+    const bgHearts = document.getElementById('bgHearts');
+    for (let i = 0; i < 15; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-particle';
+      heart.innerHTML = '🌸';
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.animationDelay = Math.random() * 5 + 's';
+      heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+      bgHearts.appendChild(heart);
+    }
+
+    keypad.addEventListener('click', (e) => {
+      const key = e.target.closest('.key');
+      if (!key || currentPin.length >= CORRECT_PIN.length || isAnimating) return;
+
+      const digit = key.getAttribute('data-num');
+      animateHandToKey(key, () => enterDigit(digit));
+    });
+
+    function animateHandToKey(keyElement, callback) {
+      isAnimating = true;
+      const rect = keyElement.getBoundingClientRect();
+      
+      const currentSrc = handGif.src;
+      handGif.src = '';
+      handGif.src = currentSrc;
+
+      handGif.style.opacity = '1';
+      handGif.style.left = `${rect.left + rect.width / 2}px`;
+      handGif.style.top = `${rect.top + rect.height / 2}px`;
+
+      setTimeout(() => {
+        handGif.classList.add('clicking');
+        keyElement.classList.add('pressed');
+        
+        setTimeout(() => {
+          handGif.classList.remove('clicking');
+          keyElement.classList.remove('pressed');
+          callback();
+          isAnimating = false;
+        }, 150);
+      }, 250);
+    }
+
+    function enterDigit(digit) {
+      if (currentPin.length < CORRECT_PIN.length) {
+        slots[currentPin.length].textContent = "♥";
+        slots[currentPin.length].classList.remove('active');
+        slots[currentPin.length].classList.add('filled');
+        
+        currentPin += digit;
+
+        if (currentPin.length < CORRECT_PIN.length) {
+          slots[currentPin.length].classList.add('active');
+        } else {
+          setTimeout(verifyPin, 200);
+        }
+      }
+    }
+
+    function verifyPin() {
+      if (currentPin === CORRECT_PIN) {
+        scene.classList.add('unlocked');
+        handGif.style.opacity = '0';
+      } else {
+        pinContainer.classList.add('error');
+        setTimeout(() => {
+          pinContainer.classList.remove('error');
+          clearPin();
+        }, 800);
+      }
+    }
+
+    function openLetterModal() {
+      paperModal.classList.add('active');
+    }
+
+    function closeLetterModal() {
+      paperModal.classList.remove('active');
+    }
+
+    function clearPin() {
+      if (scene.classList.contains('unlocked')) return;
+      currentPin = "";
+      slots.forEach((slot, index) => {
+        slot.textContent = "";
+        slot.classList.remove('filled', 'active');
+        if (index === 0) slot.classList.add('active');
+      });
+    }
+
+    function resetLock() {
+      clearPin();
+      closeLetterModal();
+      scene.classList.remove('unlocked');
+      handGif.style.opacity = '0';
+    }
+  </script>
+</body>
+</html>
