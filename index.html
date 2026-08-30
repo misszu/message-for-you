@@ -514,7 +514,6 @@ i wont beg this time.. hindi sa wala na akong pakee haa, but because i'm startin
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Itinaas ang Y (mula 45 papuntang 28) at bawas kaunti sa size para hindi nakadikit sa teksto
       const heartY = 28;
       const size = 18;
 
@@ -534,13 +533,11 @@ i wont beg this time.. hindi sa wala na akong pakee haa, but because i'm startin
     }
 
     function generatePaperBackground() {
-      // Harap na Papel: Heart nasa KANAN
       const canvasFront = document.createElement('canvas');
       canvasFront.width = 380;
       canvasFront.height = 480;
       document.querySelector('.card-front').style.backgroundImage = drawPaperBackground(canvasFront, 335);
 
-      // Likod na Papel: Heart nasa KALIWA
       const canvasBack = document.createElement('canvas');
       canvasBack.width = 380;
       canvasBack.height = 480;
